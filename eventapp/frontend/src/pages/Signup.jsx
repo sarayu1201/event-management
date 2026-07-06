@@ -22,11 +22,11 @@ const Signup = () => {
       return;
     }
 
-    // Validate phone number format (at least 10 digits, allowing optional + prefix)
-    const cleanPhone = form.phone.replace(/[\s\-]/g, "");
-    const phoneRegex = /^\+?[0-9]{10,14}$/;
+    // Validate phone number format (strict 10-digit Indian mobile format)
+    const cleanPhone = form.phone.replace(/[\s\-\(\)]/g, "");
+    const phoneRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
     if (!phoneRegex.test(cleanPhone)) {
-      setError("Please enter a valid 10-digit mobile number.");
+      setError("Please enter a valid 10-digit Indian mobile number (e.g., 9876543210).");
       return;
     }
 

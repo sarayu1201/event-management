@@ -17,12 +17,12 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: "Please enter a valid email address" });
     }
 
-    // Validate phone number format (if provided)
+    // Validate phone number format (strict 10-digit Indian mobile format if provided)
     if (phone) {
-      const cleanPhone = phone.replace(/[\s\-]/g, "");
-      const phoneRegex = /^\+?[0-9]{10,14}$/;
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, "");
+      const phoneRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
       if (!phoneRegex.test(cleanPhone)) {
-        return res.status(400).json({ message: "Please enter a valid 10-digit mobile number" });
+        return res.status(400).json({ message: "Please enter a valid 10-digit Indian mobile number" });
       }
     }
 
