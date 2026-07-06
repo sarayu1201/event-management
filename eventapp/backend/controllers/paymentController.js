@@ -86,8 +86,10 @@ const createPaymentSession = async (req, res, next) => {
 
     // Generate unique Cashfree order ID to allow retry attempts
     const orderId = `${booking._id}_${Date.now()}`;
-    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-    const returnUrl = `${clientUrl}/payment/status?order_id={order_id}`;
+    const origin = req.headers.origin 
+      ? req.headers.origin.replace(/\/$/, "")
+      : (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",")[0].trim() : "http://localhost:3001");
+    const returnUrl = `${origin}/payment/status?order_id={order_id}`;
 
     const customerDetails = {
       id: booking.user._id,
