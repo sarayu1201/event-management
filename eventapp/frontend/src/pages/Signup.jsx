@@ -14,6 +14,22 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      setError("Please enter a valid email address (e.g. name@example.com).");
+      return;
+    }
+
+    // Validate phone number format (at least 10 digits, allowing optional + prefix)
+    const cleanPhone = form.phone.replace(/[\s\-]/g, "");
+    const phoneRegex = /^\+?[0-9]{10,14}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      setError("Please enter a valid 10-digit mobile number.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       await register({ ...form, role: "user" });

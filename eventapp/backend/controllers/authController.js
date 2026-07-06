@@ -11,6 +11,21 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: "Name, email and password are required" });
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
+    // Validate phone number format (if provided)
+    if (phone) {
+      const cleanPhone = phone.replace(/[\s\-]/g, "");
+      const phoneRegex = /^\+?[0-9]{10,14}$/;
+      if (!phoneRegex.test(cleanPhone)) {
+        return res.status(400).json({ message: "Please enter a valid 10-digit mobile number" });
+      }
+    }
+
     // Matches the site's workflow: only Users and Event Organisers can self-signup.
     // Promoter accounts are created by an admin/organiser (see seed script / admin panel).
     const allowedSelfSignupRoles = ["user", "organiser"];
