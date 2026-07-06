@@ -17,12 +17,21 @@ const register = async (req, res, next) => {
       return res.status(400).json({ message: "Please enter a valid email address" });
     }
 
-    // Validate phone number format (strict 10-digit Indian mobile format if provided)
+    // Validate and normalize phone number
+    let finalPhone = undefined;
     if (phone) {
       const cleanPhone = phone.replace(/[\s\-\(\)]/g, "");
       const phoneRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
       if (!phoneRegex.test(cleanPhone)) {
         return res.status(400).json({ message: "Please enter a valid 10-digit Indian mobile number" });
+      }
+      
+      const match = cleanPhone.match(/^(?:\+91|91|0)?([6-9]\d{9})$/);
+      finalPhone = match ? match[1] : cleanPhone;
+
+      const existingPhone = await User.findOne({ phone: finalPhone });
+      if (existingPhone) {
+        return res.status(400).json({ message: "An account with this phone number already exists" });
       }
     }
 
@@ -40,7 +49,7 @@ const register = async (req, res, next) => {
       name,
       email,
       password,
-      phone,
+      phone: finalPhone,
       role: finalRole,
       companyName: finalRole === "organiser" ? companyName : undefined,
     });
