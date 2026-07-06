@@ -6,6 +6,7 @@ const {
   verifyCashfreeOrder,
   getCashfreeOrderPayments,
 } = require("../utils/cashfree");
+const { sendTicketEmail } = require("../utils/email");
 
 const generateTransactionId = () => {
   return "TXN" + Date.now().toString() + Math.floor(Math.random() * 9000 + 1000);
@@ -130,7 +131,7 @@ const verifyPayment = async (req, res, next) => {
 
     const cashfreeOrder = await verifyCashfreeOrder(order_id);
     const bookingId = order_id.split("_")[0];
-    const booking = await Booking.findById(bookingId).populate("event");
+    const booking = await Booking.findById(bookingId).populate("event").populate("user");
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -170,6 +171,9 @@ const verifyPayment = async (req, res, next) => {
       booking.paymentMethod = paymentMethod;
       booking.transactionId = transactionId;
       await booking.save();
+
+      // Send confirmation ticket email
+      await sendTicketEmail(booking);
 
       return res.json({ message: "Payment verified and booking completed", booking });
     } else {
@@ -221,7 +225,7 @@ const handleCashfreeWebhook = async (req, res, next) => {
       const orderId = event.data?.order?.order_id;
       if (orderId) {
         const bookingId = orderId.split("_")[0];
-        const booking = await Booking.findById(bookingId).populate("event");
+        const booking = await Booking.findById(bookingId).populate("event").populate("user");
 
         if (booking && booking.paymentStatus !== "success") {
           const eventRecord = await Event.findById(booking.event._id);
@@ -233,6 +237,10 @@ const handleCashfreeWebhook = async (req, res, next) => {
             booking.paymentMethod = event.data.payment?.payment_group || "cashfree";
             booking.transactionId = event.data.payment?.cf_payment_id || orderId;
             await booking.save();
+
+            // Send confirmation ticket email
+            await sendTicketEmail(booking);
+
             console.log(`Webhook successfully processed booking: ${bookingId}`);
           } else {
             console.warn(`Webhook failed to confirm booking ${bookingId}: Seats no longer available`);
