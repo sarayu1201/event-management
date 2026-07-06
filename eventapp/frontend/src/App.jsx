@@ -24,6 +24,11 @@ import PromoterDashboard from "./pages/PromoterDashboard";
 import PromoterEvents from "./pages/PromoterEvents";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import Contact from "./pages/Contact";
+import Terms from "./pages/Terms";
+import Refunds from "./pages/Refunds";
+import Privacy from "./pages/Privacy";
+import Footer from "./components/Footer";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -153,8 +158,15 @@ function App() {
           }
         />
 
+        {/* Legal Policy Pages for Whitelisting */}
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/refunds" element={<Refunds />} />
+        <Route path="/privacy" element={<Privacy />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <Footer />
     </AuthProvider>
   );
 }
