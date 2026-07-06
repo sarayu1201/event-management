@@ -36,8 +36,9 @@ const FakePaymentGateway = () => {
         throw new Error("Cashfree SDK not loaded. Please check your internet connection.");
       }
 
+      const mode = (data.cfEnv || "").toLowerCase() === "production" ? "production" : "sandbox";
       const cashfree = window.Cashfree({
-        mode: "production", // Using production as key is prod
+        mode,
       });
 
       // 3. Trigger Cashfree checkout

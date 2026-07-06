@@ -108,6 +108,7 @@ const createPaymentSession = async (req, res, next) => {
     res.json({
       paymentSessionId: cashfreeOrder.payment_session_id,
       orderId: cashfreeOrder.order_id,
+      cfEnv: process.env.CASHFREE_ENV || "sandbox",
     });
   } catch (err) {
     console.error("Cashfree Session Creation Error:", err.error || err.message || err);
