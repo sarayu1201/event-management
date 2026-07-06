@@ -25,6 +25,9 @@ const eventSchema = new mongoose.Schema(
       enum: ["approved", "pending", "cancelled"],
       default: "approved",
     },
+    ticketThemeColor: { type: String, default: "#1e3c72" },
+    ticketHeaderImage: { type: String, default: "" },
+    ticketInstructions: { type: String, default: "Please carry a valid ID card." },
   },
   { timestamps: true }
 );

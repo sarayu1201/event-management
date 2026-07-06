@@ -10,7 +10,14 @@ const ManageEvent = () => {
   const [promoInput, setPromoInput] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [custMessage, setCustMessage] = useState("");
+  const [custError, setCustError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [customTheme, setCustomTheme] = useState({
+    ticketThemeColor: "#1e3c72",
+    ticketHeaderImage: "",
+    ticketInstructions: "Please carry a valid ID card."
+  });
 
   const loadData = () => {
     setLoading(true);
@@ -18,6 +25,11 @@ const ManageEvent = () => {
       .then(([evRes, bookingsRes]) => {
         setEvent(evRes.data);
         setBookings(bookingsRes.data);
+        setCustomTheme({
+          ticketThemeColor: evRes.data.ticketThemeColor || "#1e3c72",
+          ticketHeaderImage: evRes.data.ticketHeaderImage || "",
+          ticketInstructions: evRes.data.ticketInstructions || "Please carry a valid ID card."
+        });
       })
       .catch(() => setError("Could not load event data"))
       .finally(() => setLoading(false));
@@ -39,6 +51,19 @@ const ManageEvent = () => {
       loadData();
     } catch (err) {
       setError(err.response?.data?.message || "Could not assign promoter");
+    }
+  };
+
+  const handleUpdateCustomization = async (e) => {
+    e.preventDefault();
+    setCustMessage("");
+    setCustError("");
+    try {
+      const { data } = await api.put(`/events/${id}`, customTheme);
+      setCustMessage("Ticket customization saved successfully!");
+      setEvent(data);
+    } catch (err) {
+      setCustError(err.response?.data?.message || "Could not update ticket customization");
     }
   };
 
@@ -89,6 +114,50 @@ const ManageEvent = () => {
               {event.promoters.length} promoter(s) currently assigned.
             </p>
           )}
+        </div>
+
+        <div className="card-panel" style={{ marginTop: "24px" }}>
+          <h3 style={{ marginTop: 0 }}>🎟️ Customize Ticket Branding</h3>
+          <p style={{ color: "var(--text-dim)", fontSize: 14 }}>
+            Brand your event tickets with a custom theme color, banner image, and attendee instructions.
+          </p>
+          {custMessage && <div className="alert alert-success">{custMessage}</div>}
+          {custError && <div className="alert alert-error">{custError}</div>}
+          
+          <form onSubmit={handleUpdateCustomization}>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Ticket Theme Color</label>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <input
+                    type="color"
+                    value={customTheme.ticketThemeColor}
+                    onChange={(e) => setCustomTheme({ ...customTheme, ticketThemeColor: e.target.value })}
+                    style={{ width: "50px", height: "38px", padding: "2px", cursor: "pointer", border: "1px solid var(--border)", borderRadius: "6px" }}
+                  />
+                  <span style={{ fontSize: "13px", color: "var(--text-dim)" }}>{customTheme.ticketThemeColor}</span>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Ticket Header Image URL (optional)</label>
+                <input
+                  value={customTheme.ticketHeaderImage}
+                  onChange={(e) => setCustomTheme({ ...customTheme, ticketHeaderImage: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Special Instructions / Guidelines</label>
+              <textarea
+                value={customTheme.ticketInstructions}
+                onChange={(e) => setCustomTheme({ ...customTheme, ticketInstructions: e.target.value })}
+                placeholder="e.g. Please carry a valid physical ID card. Gates open 1 hour before showtime."
+                style={{ minHeight: "60px" }}
+              />
+            </div>
+            <button className="btn btn-primary">Save Ticket Design</button>
+          </form>
         </div>
 
         <h3 className="section-title" style={{ fontSize: 18 }}>Bookings</h3>

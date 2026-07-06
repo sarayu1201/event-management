@@ -7,6 +7,7 @@ const {
   getCashfreeOrderPayments,
 } = require("../utils/cashfree");
 const { sendTicketEmail } = require("../utils/email");
+const { sendTicketWhatsApp } = require("../utils/whatsapp");
 
 const generateTransactionId = () => {
   return "TXN" + Date.now().toString() + Math.floor(Math.random() * 9000 + 1000);
@@ -175,6 +176,9 @@ const verifyPayment = async (req, res, next) => {
       // Send confirmation ticket email
       await sendTicketEmail(booking);
 
+      // Send confirmation ticket WhatsApp
+      await sendTicketWhatsApp(booking);
+
       return res.json({ message: "Payment verified and booking completed", booking });
     } else {
       if (cashfreeOrder.order_status === "FAILED" || cashfreeOrder.order_status === "EXPIRED") {
@@ -240,6 +244,9 @@ const handleCashfreeWebhook = async (req, res, next) => {
 
             // Send confirmation ticket email
             await sendTicketEmail(booking);
+
+            // Send confirmation ticket WhatsApp
+            await sendTicketWhatsApp(booking);
 
             console.log(`Webhook successfully processed booking: ${bookingId}`);
           } else {

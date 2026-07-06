@@ -12,24 +12,34 @@ const sendTicketEmail = async (booking) => {
 
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.ticketId}`;
 
+    const themeColor = event.ticketThemeColor || "#4f46e5";
+    const headerImgHtml = event.ticketHeaderImage 
+      ? `<div style="text-align: center; margin-bottom: 20px;"><img src="${event.ticketHeaderImage}" style="max-width: 100%; border-radius: 6px; max-height: 140px; object-fit: cover;" alt="Event Header" /></div>`
+      : "";
+    const instructionsHtml = event.ticketInstructions 
+      ? `<p style="margin: 5px 0; color: #ef4444;"><strong>⚠️ Instructions:</strong> ${event.ticketInstructions}</p>`
+      : "";
+
     const mailOptions = {
       from: process.env.SMTP_FROM || `"EventHub Tickets" <no-reply@eventhub.com>`,
       to: user.email,
       subject: `Your Ticket is Confirmed! - ${event.title}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px; background-color: #ffffff; color: #1e293b;">
-          <h2 style="color: #4f46e5; text-align: center;">Booking Confirmed! 🎉</h2>
+          ${headerImgHtml}
+          <h2 style="color: ${themeColor}; text-align: center;">Booking Confirmed! 🎉</h2>
           <p>Hi ${user.name || "Customer"},</p>
           <p>Your tickets have been successfully booked. Below are your ticket details and QR code for entry.</p>
           
           <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 15px; margin: 20px 0;">
-            <p style="margin: 5px 0;"><strong>🎫 Ticket ID:</strong> <span style="font-family: monospace; font-size: 16px; color: #4f46e5;">${booking.ticketId}</span></p>
+            <p style="margin: 5px 0;"><strong>🎫 Ticket ID:</strong> <span style="font-family: monospace; font-size: 16px; color: ${themeColor}; font-weight: bold;">${booking.ticketId}</span></p>
             <p style="margin: 5px 0;"><strong>🎉 Event:</strong> ${event.title}</p>
             <p style="margin: 5px 0;"><strong>📅 Date & Time:</strong> ${new Date(event.date).toDateString()} at ${event.time}</p>
             <p style="margin: 5px 0;"><strong>📍 Venue:</strong> ${event.venue}, ${event.city}</p>
             <p style="margin: 5px 0;"><strong>👥 Seats:</strong> ${booking.seats}</p>
             <p style="margin: 5px 0;"><strong>💳 Amount Paid:</strong> ₹${booking.totalAmount}</p>
             <p style="margin: 5px 0;"><strong>💳 Transaction ID:</strong> ${booking.transactionId}</p>
+            ${instructionsHtml}
           </div>
 
           <div style="text-align: center; margin: 30px 0;">

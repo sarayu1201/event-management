@@ -32,11 +32,18 @@ const BookingConfirmation = () => {
       </p>
 
       {!failed && (
-        <div className="ticket-card">
-          <div className="info-row">🎫 Ticket ID: <strong>{booking.ticketId}</strong></div>
+        <div className="ticket-card" style={{ borderTop: `6px solid ${booking.event.ticketThemeColor || "#4f46e5"}` }}>
+          {booking.event.ticketHeaderImage && (
+            <img 
+              src={booking.event.ticketHeaderImage} 
+              alt="Banner" 
+              style={{ width: "100%", height: 120, objectFit: "cover", borderRadius: "6px", marginBottom: 16 }} 
+            />
+          )}
+          <div className="info-row">🎫 Ticket ID: <strong style={{ color: booking.event.ticketThemeColor || "var(--pink)" }}>{booking.ticketId}</strong></div>
           
           {/* Dynamic QR Code */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "24px 0", padding: "16px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: "20px 0", padding: "16px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid var(--border)" }}>
             <img 
               src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.ticketId}`} 
               alt="Ticket QR Code" 
@@ -54,6 +61,19 @@ const BookingConfirmation = () => {
           <div className="price-total">
             <span>Total Paid</span>
             <span>₹{booking.totalAmount}</span>
+          </div>
+
+          {/* Guidelines */}
+          <div style={{
+            marginTop: 16,
+            padding: 10,
+            background: "rgba(239,68,68,0.06)",
+            border: "1px dashed rgba(239,68,68,0.3)",
+            borderRadius: 8,
+            fontSize: 12,
+            color: "#f87171"
+          }}>
+            <strong>⚠️ Guidelines:</strong> {booking.event.ticketInstructions || "Please carry a valid ID card."}
           </div>
         </div>
       )}

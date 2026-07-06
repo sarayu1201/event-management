@@ -17,6 +17,9 @@ const emptyForm = {
   time: "",
   price: "",
   totalSeats: "",
+  ticketThemeColor: "#1e3c72",
+  ticketHeaderImage: "",
+  ticketInstructions: "Please carry a valid ID card.",
 };
 
 const CreateEvent = () => {
@@ -116,6 +119,41 @@ const CreateEvent = () => {
             <div className="form-group">
               <label>Total Seats</label>
               <input type="number" name="totalSeats" required min="1" value={form.totalSeats} onChange={onChange} placeholder="e.g. 200" />
+            </div>
+          </div>
+
+          <div style={{ margin: "24px 0 16px", borderTop: "1px dashed var(--border)", paddingTop: "16px" }}>
+            <h4 style={{ margin: "0 0 12px", color: "var(--pink)", fontSize: "14px" }}>🎟️ Ticket Customization (For Attendee PDFs & Scans)</h4>
+            
+            <div className="form-row">
+              <div className="form-group">
+                <label>Ticket Theme Color</label>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <input 
+                    type="color" 
+                    name="ticketThemeColor" 
+                    value={form.ticketThemeColor} 
+                    onChange={onChange} 
+                    style={{ width: "50px", height: "38px", padding: "2px", cursor: "pointer", border: "1px solid var(--border)", borderRadius: "6px" }} 
+                  />
+                  <span style={{ fontSize: "13px", color: "var(--text-dim)" }}>{form.ticketThemeColor}</span>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Ticket Header Image URL (optional)</label>
+                <input name="ticketHeaderImage" value={form.ticketHeaderImage} onChange={onChange} placeholder="https://..." />
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Special Instructions / Guidelines</label>
+              <textarea 
+                name="ticketInstructions" 
+                value={form.ticketInstructions} 
+                onChange={onChange} 
+                placeholder="e.g. Please carry a valid physical ID card. Gates open 1 hour before showtime." 
+                style={{ minHeight: "60px" }}
+              />
             </div>
           </div>
 

@@ -42,7 +42,7 @@ const getEventById = async (req, res, next) => {
 // @route POST /api/events
 const createEvent = async (req, res, next) => {
   try {
-    const { title, description, category, bannerImage, venue, city, address, date, time, price, totalSeats } = req.body;
+    const { title, description, category, bannerImage, venue, city, address, date, time, price, totalSeats, ticketThemeColor, ticketHeaderImage, ticketInstructions } = req.body;
 
     if (!title || !description || !category || !venue || !city || !date || !time || price == null || !totalSeats) {
       return res.status(400).json({ message: "Please fill in all required event fields" });
@@ -63,6 +63,9 @@ const createEvent = async (req, res, next) => {
       availableSeats: totalSeats,
       organiser: req.user._id,
       status: "approved", // auto-approved for demo purposes
+      ticketThemeColor,
+      ticketHeaderImage,
+      ticketInstructions,
     });
 
     res.status(201).json(event);
@@ -82,7 +85,7 @@ const updateEvent = async (req, res, next) => {
       return res.status(403).json({ message: "You can only edit your own events" });
     }
 
-    const updatable = ["title", "description", "category", "bannerImage", "venue", "city", "address", "date", "time", "price"];
+    const updatable = ["title", "description", "category", "bannerImage", "venue", "city", "address", "date", "time", "price", "ticketThemeColor", "ticketHeaderImage", "ticketInstructions"];
     updatable.forEach((field) => {
       if (req.body[field] !== undefined) event[field] = req.body[field];
     });
