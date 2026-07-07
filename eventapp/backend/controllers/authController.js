@@ -10,6 +10,66 @@ const normalizePhone = (phone) => {
   return match ? match[1] : cleanPhone;
 };
 
+// @desc  Register a new account (role: "user" or "organiser" only)
+// @route POST /api/auth/register
+const register = async (req, res, next) => {
+  try {
+    const { name, email, password, phone, role, companyName } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
+    // Validate and normalize phone number
+    let finalPhone = undefined;
+    if (phone) {
+      const cleanPhone = phone.replace(/[\s\-\(\)]/g, "");
+      const phoneRegex = /^(?:\+91|91|0)?[6-9]\d{9}$/;
+      if (!phoneRegex.test(cleanPhone)) {
+        return res.status(400).json({ message: "Please enter a valid 10-digit Indian mobile number" });
+      }
+      
+      const match = cleanPhone.match(/^(?:\+91|91|0)?([6-9]\d{9})$/);
+      finalPhone = match ? match[1] : cleanPhone;
+
+      const existingPhone = await User.findOne({ phone: finalPhone });
+      if (existingPhone) {
+        return res.status(400).json({ message: "An account with this phone number already exists" });
+      }
+    }
+
+    // Matches the site's workflow: only Users and Event Organisers can self-signup.
+    // Promoter accounts are created by an admin/organiser (see seed script / admin panel).
+    const allowedSelfSignupRoles = ["user", "organiser"];
+    const finalRole = allowedSelfSignupRoles.includes(role) ? role : "user";
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return res.status(400).json({ message: "An account with this email already exists" });
+    }
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone: finalPhone,
+      role: finalRole,
+      companyName: finalRole === "organiser" ? companyName : undefined,
+    });
+
+    const token = generateToken(user);
+    res.status(201).json({ token, user: user.toSafeObject() });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // @desc  Send SMS OTP to phone number
 // @route POST /api/auth/send-otp
 const sendOTP = async (req, res, next) => {
@@ -187,4 +247,4 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
-module.exports = { sendOTP, verifyOTP, login, getMe, updateProfile };
+module.exports = { register, sendOTP, verifyOTP, login, getMe, updateProfile };
