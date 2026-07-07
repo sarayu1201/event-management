@@ -28,6 +28,21 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   };
 
+  const sendOtp = async (phone) => {
+    const { data } = await api.post("/auth/send-otp", { phone });
+    return data;
+  };
+
+  const verifyOtp = async (payload) => {
+    const { data } = await api.post("/auth/verify-otp", payload);
+    if (data.exists && data.token) {
+      localStorage.setItem("eventhub_token", data.token);
+      localStorage.setItem("eventhub_user", JSON.stringify(data.user));
+      setUser(data.user);
+    }
+    return data;
+  };
+
   const register = async (payload) => {
     const { data } = await api.post("/auth/register", payload);
     localStorage.setItem("eventhub_token", data.token);
@@ -43,7 +58,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, setUser, sendOtp, verifyOtp }}>
       {children}
     </AuthContext.Provider>
   );

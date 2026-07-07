@@ -186,6 +186,139 @@ const getFilters = async (req, res, next) => {
   }
 };
 
+// @desc  Duplicate an existing event (owning organiser only)
+// @route POST /api/events/:id/duplicate
+const duplicateEvent = async (req, res, next) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    if (String(event.organiser) !== String(req.user._id)) {
+      return res.status(403).json({ message: "You can only duplicate your own events" });
+    }
+
+    const duplicated = await Event.create({
+      title: `${event.title} (Copy)`,
+      description: event.description,
+      category: event.category,
+      bannerImage: event.bannerImage,
+      venue: event.venue,
+      city: event.city,
+      address: event.address,
+      date: event.date,
+      time: event.time,
+      price: event.price,
+      totalSeats: event.totalSeats,
+      availableSeats: event.totalSeats,
+      ticketThemeColor: event.ticketThemeColor,
+      ticketHeaderImage: event.ticketHeaderImage,
+      ticketInstructions: event.ticketInstructions,
+      ticketTypes: event.ticketTypes.map((t) => ({
+        name: t.name,
+        price: t.price,
+        quantity: t.quantity,
+        availableQuantity: t.quantity,
+        bookingLimit: t.bookingLimit,
+        saleStartDate: t.saleStartDate,
+        saleEndDate: t.saleEndDate,
+        benefits: t.benefits,
+      })),
+      latitude: event.latitude,
+      longitude: event.longitude,
+      ageRestriction: event.ageRestriction,
+      dressCode: event.dressCode,
+      parkingInfo: event.parkingInfo,
+      website: event.website,
+      socialLinks: event.socialLinks,
+      visibility: "draft",
+      eventStatus: "upcoming",
+      organiser: req.user._id,
+      status: "approved",
+    });
+
+    res.status(201).json(duplicated);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Toggle pause/resume event (toggle draft/public visibility)
+// @route PUT /api/events/:id/toggle-pause
+const togglePauseEvent = async (req, res, next) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    if (String(event.organiser) !== String(req.user._id)) {
+      return res.status(403).json({ message: "You can only manage your own events" });
+    }
+
+    event.visibility = event.visibility === "draft" ? "public" : "draft";
+    await event.save();
+
+    res.json({ message: `Event visibility toggled to ${event.visibility}`, event });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Cancel an event (owning organiser only)
+// @route PUT /api/events/:id/cancel
+const cancelEvent = async (req, res, next) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
+
+    if (String(event.organiser) !== String(req.user._id)) {
+      return res.status(403).json({ message: "You can only manage your own events" });
+    }
+
+    event.eventStatus = "cancelled";
+    event.status = "cancelled";
+    await event.save();
+
+    res.json({ message: "Event marked as cancelled", event });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Check-in attendee by ticket QR code
+// @route POST /api/events/:id/check-in
+const checkInAttendee = async (req, res, next) => {
+  try {
+    const { ticketId } = req.body;
+    if (!ticketId) return res.status(400).json({ message: "Ticket ID is required" });
+
+    const booking = await Booking.findOne({ ticketId }).populate("event").populate("user", "name email phone");
+    if (!booking) return res.status(404).json({ message: "Ticket not found" });
+
+    if (String(booking.event.organiser) !== String(req.user._id)) {
+      return res.status(403).json({ message: "You are not the organiser of this event" });
+    }
+
+    if (booking.paymentStatus !== "success") {
+      return res.status(400).json({ message: "This ticket has not been paid for yet" });
+    }
+
+    if (booking.checkedIn) {
+      return res.status(400).json({
+        message: "Ticket already scanned!",
+        checkedInAt: booking.checkInTime,
+        booking
+      });
+    }
+
+    booking.checkedIn = true;
+    booking.checkInTime = new Date();
+    await booking.save();
+
+    res.json({ message: "Check-in successful! Entry marked.", booking });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getEvents,
   getEventById,
@@ -195,4 +328,8 @@ module.exports = {
   getMyEvents,
   assignPromoter,
   getFilters,
+  duplicateEvent,
+  togglePauseEvent,
+  cancelEvent,
+  checkInAttendee,
 };

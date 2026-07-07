@@ -131,6 +131,62 @@ const getAllBookings = async (req, res, next) => {
   }
 };
 
+const Payout = require("../models/Payout");
+
+// @desc  Get all withdrawal requests
+// @route GET /api/admin/withdrawals
+const getAllWithdrawals = async (req, res, next) => {
+  try {
+    const payouts = await Payout.find({})
+      .populate("organiser", "name companyName email phone availableBalance pendingBalance")
+      .sort({ createdAt: -1 });
+    res.json(payouts);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Approve or Reject withdrawal request
+// @route PUT /api/admin/withdrawals/:id
+const processWithdrawalRequest = async (req, res, next) => {
+  try {
+    const { status, adminNotes, transactionId } = req.body;
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status value. Choose approved or rejected." });
+    }
+
+    const payout = await Payout.findById(req.params.id);
+    if (!payout) return res.status(404).json({ message: "Payout request not found" });
+
+    if (payout.status !== "pending") {
+      return res.status(400).json({ message: "This request has already been processed" });
+    }
+
+    const organiser = await User.findById(payout.organiser);
+    if (!organiser) return res.status(404).json({ message: "Organiser not found" });
+
+    payout.status = status;
+    if (adminNotes) payout.adminNotes = adminNotes;
+    if (transactionId) payout.transactionId = transactionId;
+
+    if (status === "approved") {
+      // Deduct from pending balance
+      organiser.pendingBalance = Math.max(0, organiser.pendingBalance - payout.amount);
+    } else {
+      // Refund back to available balance and deduct from pending balance
+      organiser.availableBalance += payout.amount;
+      organiser.pendingBalance = Math.max(0, organiser.pendingBalance - payout.amount);
+    }
+
+    await organiser.save();
+    await payout.save();
+
+    res.json({ message: `Withdrawal request successfully ${status}`, payout });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   getAllUsers,
   toggleUserStatus,
@@ -138,4 +194,6 @@ module.exports = {
   getAllEvents,
   updateEventStatus,
   getAllBookings,
+  getAllWithdrawals,
+  processWithdrawalRequest,
 };

@@ -1,0 +1,26 @@
+name: EventHub CI/CD Deploy pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd eventapp/backend && npm install --production
+          cd ../frontend && npm install
+
+      - name: Build frontend bundle assets
+        run: |
+          cd eventapp/frontend && npm run build

@@ -10,32 +10,46 @@ const PaymentStatus = () => {
   const [bookingId, setBookingId] = useState("");
 
   const orderId = searchParams.get("order_id");
+  const queryGateway = searchParams.get("gateway");
+  const queryBookingId = searchParams.get("booking_id");
+  const queryStatus = searchParams.get("status");
 
   useEffect(() => {
-    if (!orderId) {
-      setStatus("failed");
-      setErrorMsg("Order reference ID is missing.");
+    // 1. Stripe/Razorpay direct mock success confirmations
+    if (queryBookingId && queryStatus === "success") {
+      setBookingId(queryBookingId);
+      setStatus("success");
+      const timer = setTimeout(() => {
+        navigate(`/booking-confirmation/${queryBookingId}`);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+
+    // 2. Cashfree payment confirmations
+    if (orderId) {
+      const bId = orderId.split("_")[0];
+      setBookingId(bId);
+
+      api
+        .post("/payment/verify", { order_id: orderId })
+        .then(() => {
+          setStatus("success");
+          const timer = setTimeout(() => {
+            navigate(`/booking-confirmation/${bId}`);
+          }, 2000);
+          return () => clearTimeout(timer);
+        })
+        .catch((err) => {
+          setStatus("failed");
+          setErrorMsg(err.response?.data?.message || "Verification failed. Cashfree might be processing your transaction.");
+        });
       return;
     }
 
-    const bId = orderId.split("_")[0];
-    setBookingId(bId);
-
-    // Call backend to verify the status
-    api
-      .post("/payment/verify", { order_id: orderId })
-      .then(({ data }) => {
-        setStatus("success");
-        // Redirect to booking confirmation after a short delay
-        setTimeout(() => {
-          navigate(`/booking-confirmation/${bId}`);
-        }, 2000);
-      })
-      .catch((err) => {
-        setStatus("failed");
-        setErrorMsg(err.response?.data?.message || "Verification failed. Cashfree might be processing your transaction.");
-      });
-  }, [orderId, navigate]);
+    // 3. Fallback error
+    setStatus("failed");
+    setErrorMsg("Reference transaction identification details are missing.");
+  }, [orderId, queryBookingId, queryGateway, queryStatus, navigate]);
 
   return (
     <div className="payment-shell">
@@ -45,7 +59,7 @@ const PaymentStatus = () => {
             <div className="spinner" style={{ width: 40, height: 40, border: "3px solid var(--primary-light)", borderTopColor: "var(--primary)", margin: "0 auto 20px" }} />
             <h3>Verifying Payment</h3>
             <p style={{ color: "var(--text-dim)", marginTop: 8 }}>
-              Please do not refresh this page or click back. We are checking the transaction status with Cashfree.
+              Please do not refresh this page. We are verifying the payment status with your gateway.
             </p>
           </div>
         )}
@@ -66,7 +80,7 @@ const PaymentStatus = () => {
             <h3>Payment Verification Failed</h3>
             <p style={{ color: "#ef4444", marginTop: 8, fontSize: 14 }}>{errorMsg}</p>
             <p style={{ color: "var(--text-dim)", marginTop: 12, fontSize: 13 }}>
-              If your amount was debited, it will be refunded, or you can contact support.
+              If your account was debited, it will be automatically credited/refunded, or you can contact support.
             </p>
             <div style={{ marginTop: 24, display: "flex", gap: 12, justifyContent: "center" }}>
               {bookingId && (

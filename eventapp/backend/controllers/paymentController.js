@@ -1,6 +1,7 @@
 const crypto = require("crypto");
 const Booking = require("../models/Booking");
 const Event = require("../models/Event");
+const User = require("../models/User");
 const {
   createCashfreeOrder,
   verifyCashfreeOrder,
@@ -13,54 +14,100 @@ const generateTransactionId = () => {
   return "TXN" + Date.now().toString() + Math.floor(Math.random() * 9000 + 1000);
 };
 
-// Very light "fake" validation just so the demo card form isn't accepting empty junk.
-// This is NOT real payment validation and must never be used with real card data.
-const isPlausibleFakeCard = (cardNumber, expiry, cvv) => {
-  const digitsOnly = (cardNumber || "").replace(/\s/g, "");
-  if (digitsOnly.length < 12 || digitsOnly.length > 19) return false;
-  if (!/^\d{2}\/\d{2}$/.test(expiry || "")) return false;
-  if (!/^\d{3,4}$/.test(cvv || "")) return false;
+const creditOrganiserBalance = async (booking) => {
+  try {
+    const event = await Event.findById(booking.event._id);
+    if (!event) return;
+    const organiser = await User.findById(event.organiser);
+    if (!organiser) return;
+    
+    // Credit organiser's available balance
+    organiser.availableBalance = (organiser.availableBalance || 0) + booking.totalAmount;
+    await organiser.save();
+    console.log(`[Earnings] Credited ₹${booking.totalAmount} to Organiser: ${organiser.name} (Event: ${event.title})`);
+  } catch (err) {
+    console.error("Failed to credit organiser earnings:", err);
+  }
+};
+
+const checkSeatsCapacityAvailable = (eventRecord, booking) => {
+  if (!eventRecord) return false;
+  if (eventRecord.ticketTypes && eventRecord.ticketTypes.length > 0) {
+    const ticketType = eventRecord.ticketTypes.find((t) => t.name === booking.ticketTypeName);
+    if (!ticketType || ticketType.availableQuantity < booking.seats) {
+      return false;
+    }
+  } else {
+    if (eventRecord.availableSeats < booking.seats) {
+      return false;
+    }
+  }
   return true;
 };
 
-// @desc  Process a fake payment for a pending booking
-// @route POST /api/payment/process/:bookingId
+const decrementSeatsCapacity = async (eventRecord, booking) => {
+  if (eventRecord.ticketTypes && eventRecord.ticketTypes.length > 0) {
+    const ticketType = eventRecord.ticketTypes.find((t) => t.name === booking.ticketTypeName);
+    if (ticketType) {
+      ticketType.availableQuantity = Math.max(0, ticketType.availableQuantity - booking.seats);
+    }
+  }
+  eventRecord.availableSeats = Math.max(0, eventRecord.availableSeats - booking.seats);
+  await eventRecord.save();
+};
+
+// Very light "fake" validation just so the demo card form isn't accepting empty junk.
+const isPlausibleFakeCard = (cardNumber, expiry, cvv) => {
+  const digitsOnly = (cardNumber || "").replace(/\s/g, "");
+  if (digitsOnly.length < 12 || digitsOnly.length > 19) return false;
+  if (!/^\d+$/.test(digitsOnly)) return false;
+  if (!/^\d{2}\/\d{2}$/.test(expiry)) return false;
+  if (!/^\d{3,4}$/.test(cvv)) return false;
+  return true;
+};
+
+// @desc  Simulate mock direct card payment on event details page
+// @route POST /api/payment/process
 const processPayment = async (req, res, next) => {
   try {
-    const { cardNumber, cardName, expiry, cvv } = req.body;
-    const booking = await Booking.findById(req.params.bookingId).populate("event");
-
-    if (!booking) return res.status(404).json({ message: "Booking not found" });
-    if (String(booking.user) !== String(req.user._id)) {
-      return res.status(403).json({ message: "Not authorized for this booking" });
+    const { bookingId, cardNumber, expiry, cvv } = req.body;
+    if (!bookingId || !cardNumber || !expiry || !cvv) {
+      return res.status(400).json({ message: "All credit card details are required" });
     }
+
+    if (!isPlausibleFakeCard(cardNumber, expiry, cvv)) {
+      return res.status(400).json({ message: "Invalid card format details" });
+    }
+
+    const booking = await Booking.findById(bookingId).populate("event").populate("user");
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
     if (booking.paymentStatus === "success") {
-      return res.status(400).json({ message: "This booking has already been paid for" });
-    }
-
-    if (!cardName || !isPlausibleFakeCard(cardNumber, expiry, cvv)) {
-      booking.paymentStatus = "failed";
-      await booking.save();
-      return res.status(400).json({
-        message: "Payment declined: please check your card details (this is a demo gateway, use any 16-digit number).",
-        booking,
-      });
+      return res.status(400).json({ message: "This booking is already paid" });
     }
 
     const event = await Event.findById(booking.event._id);
-    if (!event || event.availableSeats < booking.seats) {
+    if (!checkSeatsCapacityAvailable(event, booking)) {
       booking.paymentStatus = "failed";
       await booking.save();
-      return res.status(400).json({ message: "Seats are no longer available for this event", booking });
+      return res.status(400).json({ message: "Seats are no longer available for this option", booking });
     }
 
-    event.availableSeats -= booking.seats;
-    await event.save();
+    await decrementSeatsCapacity(event, booking);
 
     booking.paymentStatus = "success";
     booking.paymentMethod = "card";
     booking.transactionId = generateTransactionId();
     await booking.save();
+
+    // Credit earnings
+    await creditOrganiserBalance(booking);
+
+    // Delivery
+    await sendTicketEmail(booking);
+    await sendTicketWhatsApp(booking);
 
     res.json({ message: "Payment successful", booking });
   } catch (err) {
@@ -86,14 +133,12 @@ const createPaymentSession = async (req, res, next) => {
       return res.status(400).json({ message: "This booking is already paid" });
     }
 
-    // Generate unique Cashfree order ID to allow retry attempts
     const orderId = `${booking._id}_${Date.now()}`;
     const origin = req.headers.origin 
       ? req.headers.origin.replace(/\/$/, "")
       : (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",")[0].trim() : "http://localhost:3001");
     const returnUrl = `${origin}/payment/status?order_id={order_id}`;
 
-    // Sanitize user's phone number to avoid Cashfree API rejection (must be valid format, fallback to default if invalid)
     let cleanPhone = (booking.user.phone || "").replace(/[\s\-\(\)\+]/g, "");
     if (cleanPhone.startsWith("91") && cleanPhone.length === 12) {
       cleanPhone = cleanPhone.substring(2);
@@ -155,7 +200,6 @@ const verifyPayment = async (req, res, next) => {
         return res.json({ message: "Payment verified", booking });
       }
 
-      // Fetch specific transaction details from Cashfree payments sub-resource
       let transactionId = cashfreeOrder.cf_order_id || order_id;
       let paymentMethod = "cashfree";
       try {
@@ -169,26 +213,22 @@ const verifyPayment = async (req, res, next) => {
         console.error("Error fetching payment methods:", err);
       }
 
-      // Double check availability before decrementing
       const event = await Event.findById(booking.event._id);
-      if (!event || event.availableSeats < booking.seats) {
+      if (!checkSeatsCapacityAvailable(event, booking)) {
         booking.paymentStatus = "failed";
         await booking.save();
-        return res.status(400).json({ message: "Seats are no longer available for this event", booking });
+        return res.status(400).json({ message: "Seats are no longer available for this option", booking });
       }
 
-      event.availableSeats -= booking.seats;
-      await event.save();
+      await decrementSeatsCapacity(event, booking);
 
       booking.paymentStatus = "success";
       booking.paymentMethod = paymentMethod;
       booking.transactionId = transactionId;
       await booking.save();
 
-      // Send confirmation ticket email
+      await creditOrganiserBalance(booking);
       await sendTicketEmail(booking);
-
-      // Send confirmation ticket WhatsApp
       await sendTicketWhatsApp(booking);
 
       return res.json({ message: "Payment verified and booking completed", booking });
@@ -245,19 +285,16 @@ const handleCashfreeWebhook = async (req, res, next) => {
 
         if (booking && booking.paymentStatus !== "success") {
           const eventRecord = await Event.findById(booking.event._id);
-          if (eventRecord && eventRecord.availableSeats >= booking.seats) {
-            eventRecord.availableSeats -= booking.seats;
-            await eventRecord.save();
+          if (checkSeatsCapacityAvailable(eventRecord, booking)) {
+            await decrementSeatsCapacity(eventRecord, booking);
 
             booking.paymentStatus = "success";
             booking.paymentMethod = event.data.payment?.payment_group || "cashfree";
             booking.transactionId = event.data.payment?.cf_payment_id || orderId;
             await booking.save();
 
-            // Send confirmation ticket email
+            await creditOrganiserBalance(booking);
             await sendTicketEmail(booking);
-
-            // Send confirmation ticket WhatsApp
             await sendTicketWhatsApp(booking);
 
             console.log(`Webhook successfully processed booking: ${bookingId}`);
@@ -288,9 +325,147 @@ const handleCashfreeWebhook = async (req, res, next) => {
   }
 };
 
+// @desc  Create Stripe payment checkout session
+// @route POST /api/payment/stripe/create-session
+const createStripeSession = async (req, res, next) => {
+  try {
+    const { bookingId } = req.body;
+    const booking = await Booking.findById(bookingId).populate("event").populate("user");
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    const origin = req.headers.origin || "http://localhost:3001";
+    const successUrl = `${origin}/payment/status?gateway=stripe&session_id=mock_session_${Date.now()}&booking_id=${booking._id}`;
+    const cancelUrl = `${origin}/payment/${booking._id}`;
+
+    if (process.env.STRIPE_SECRET_KEY) {
+      const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "inr",
+              product_data: {
+                name: booking.event.title,
+                description: `Ticket for ${booking.event.title} (${booking.seats} seats)`,
+              },
+              unit_amount: Math.round(booking.unitPrice * 100),
+            },
+            quantity: booking.seats,
+          },
+        ],
+        mode: "payment",
+        success_url: `${origin}/payment/status?gateway=stripe&session_id={CHECKOUT_SESSION_ID}&booking_id=${booking._id}`,
+        cancel_url: cancelUrl,
+      });
+      return res.json({ url: session.url, sessionId: session.id, mock: false });
+    }
+
+    // Fallback Mock URL
+    res.json({
+      url: `/payment/mock-checkout?gateway=stripe&booking_id=${booking._id}&amount=${booking.totalAmount}`,
+      mock: true,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Create Razorpay order
+// @route POST /api/payment/razorpay/create-order
+const createRazorpayOrder = async (req, res, next) => {
+  try {
+    const { bookingId } = req.body;
+    const booking = await Booking.findById(bookingId).populate("event").populate("user");
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+      const Razorpay = require("razorpay");
+      const rzp = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID,
+        key_secret: process.env.RAZORPAY_KEY_SECRET,
+      });
+
+      const options = {
+        amount: Math.round(booking.totalAmount * 100), // in paise
+        currency: "INR",
+        receipt: `receipt_${booking._id}`,
+      };
+
+      const order = await rzp.orders.create(options);
+      return res.json({
+        orderId: order.id,
+        amount: order.amount,
+        keyId: process.env.RAZORPAY_KEY_ID,
+        mock: false,
+      });
+    }
+
+    // Fallback Mock order
+    res.json({
+      orderId: `order_mock_razor_${Date.now()}`,
+      amount: booking.totalAmount * 100,
+      keyId: "rzp_test_mock",
+      mock: true,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @desc  Verify and complete Stripe/Razorpay bookings (Mock / Client confirmation)
+// @route POST /api/payment/verify-gateway
+const verifyGatewayPayment = async (req, res, next) => {
+  try {
+    const { bookingId, gateway, transactionId, status } = req.body;
+    const booking = await Booking.findById(bookingId).populate("event").populate("user");
+
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (status === "success") {
+      if (booking.paymentStatus === "success") {
+        return res.json({ message: "Payment verified", booking });
+      }
+
+      // Check seat capacity and deduct
+      const event = await Event.findById(booking.event._id);
+      if (!checkSeatsCapacityAvailable(event, booking)) {
+        booking.paymentStatus = "failed";
+        await booking.save();
+        return res.status(400).json({ message: "Seats no longer available", booking });
+      }
+
+      await decrementSeatsCapacity(event, booking);
+
+      booking.paymentStatus = "success";
+      booking.paymentMethod = gateway || "card";
+      booking.transactionId = transactionId || `TXN_${gateway.toUpperCase()}_${Date.now()}`;
+      await booking.save();
+
+      // Credit Organiser balance
+      await creditOrganiserBalance(booking);
+
+      // Deliver ticket
+      await sendTicketEmail(booking);
+      await sendTicketWhatsApp(booking);
+
+      return res.json({ message: "Payment verified and booking completed", booking });
+    } else {
+      booking.paymentStatus = "failed";
+      await booking.save();
+      return res.status(400).json({ message: "Payment status failed", booking });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   processPayment,
   createPaymentSession,
   verifyPayment,
   handleCashfreeWebhook,
+  createStripeSession,
+  createRazorpayOrder,
+  verifyGatewayPayment
 };

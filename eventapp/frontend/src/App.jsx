@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BottomNavigation from "./components/BottomNavigation";
 
 import Home from "./pages/Home";
 import EventsList from "./pages/EventsList";
@@ -13,6 +14,7 @@ import OrganiserSignup from "./pages/OrganiserSignup";
 import PromoterLogin from "./pages/PromoterLogin";
 import Checkout from "./pages/Checkout";
 import FakePaymentGateway from "./pages/FakePaymentGateway";
+import MockCheckout from "./pages/MockCheckout";
 import PaymentStatus from "./pages/PaymentStatus";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import MyBookings from "./pages/MyBookings";
@@ -24,6 +26,14 @@ import PromoterDashboard from "./pages/PromoterDashboard";
 import PromoterEvents from "./pages/PromoterEvents";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import GateScanner from "./pages/GateScanner";
+import VisualTicketDesigner from "./pages/VisualTicketDesigner";
+import CheckInOperations from "./pages/CheckInOperations";
+import ObservabilityDashboard from "./pages/ObservabilityDashboard";
+import FeatureFlags from "./pages/FeatureFlags";
+import WebhookManagement from "./pages/WebhookManagement";
+import TableLayoutDesigner from "./pages/TableLayoutDesigner";
+import TableBookingFlow from "./pages/TableBookingFlow";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Refunds from "./pages/Refunds";
@@ -54,6 +64,9 @@ function App() {
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
+        {/* Gate Scanner Interface */}
+        <Route path="/gate-scanner" element={<GateScanner />} />
+
         {/* Booking flow (user only) */}
         <Route
           path="/checkout/:id"
@@ -64,10 +77,26 @@ function App() {
           }
         />
         <Route
+          path="/events/:id/tables"
+          element={
+            <ProtectedRoute role="user">
+              <TableBookingFlow />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/payment/:bookingId"
           element={
             <ProtectedRoute role="user">
               <FakePaymentGateway />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/mock-checkout"
+          element={
+            <ProtectedRoute role="user">
+              <MockCheckout />
             </ProtectedRoute>
           }
         />
@@ -129,6 +158,38 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/organiser/events/:id/designer"
+          element={
+            <ProtectedRoute role="organiser">
+              <VisualTicketDesigner />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organiser/events/:id/operations"
+          element={
+            <ProtectedRoute role="organiser">
+              <CheckInOperations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organiser/events/:id/lounge"
+          element={
+            <ProtectedRoute role="organiser">
+              <TableLayoutDesigner />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/organiser/webhooks"
+          element={
+            <ProtectedRoute role="organiser">
+              <WebhookManagement />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Promoter dashboard */}
         <Route
@@ -157,6 +218,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin/observability"
+          element={
+            <ProtectedRoute role="admin">
+              <ObservabilityDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/feature-flags"
+          element={
+            <ProtectedRoute role="admin">
+              <FeatureFlags />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Legal Policy Pages for Whitelisting */}
         <Route path="/contact" element={<Contact />} />
@@ -167,6 +244,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
+      <BottomNavigation />
     </AuthProvider>
   );
 }

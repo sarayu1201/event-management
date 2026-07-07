@@ -23,6 +23,24 @@ const bookingSchema = new mongoose.Schema(
       enum: ["confirmed", "cancelled"],
       default: "confirmed",
     },
+    ticketTypeName: { type: String, default: "General Admission" },
+    checkedIn: { type: Boolean, default: false },
+    checkInTime: { type: Date, default: null },
+    // Ticket GST tax fields
+    gstRate: { type: Number, default: 0 }, // GST percent (e.g. 18)
+    cgst: { type: Number, default: 0 },
+    sgst: { type: Number, default: 0 },
+    igst: { type: Number, default: 0 },
+    hsnCode: { type: String, default: "9996" },
+    // Exit/Re-entry tracking
+    checkOutTime: { type: Date, default: null },
+    checkInHistory: [
+      {
+        gate: String,
+        entryType: { type: String, enum: ["entry", "exit"], default: "entry" },
+        timestamp: { type: Date, default: Date.now }
+      }
+    ],
   },
   { timestamps: true }
 );

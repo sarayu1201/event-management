@@ -8,6 +8,17 @@ const Navbar = () => {
   const navigate = useNavigate();
   const ref = useRef(null);
 
+  const [theme, setTheme] = useState(localStorage.getItem("eventhub_theme") || "dark");
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("eventhub_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  };
+
   useEffect(() => {
     const onClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -43,7 +54,15 @@ const Navbar = () => {
         <Link to="/organiser/login">List Your Event</Link>
       </div>
 
-      <div className="nav-right" ref={ref}>
+      <div className="nav-right" ref={ref} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <button 
+          onClick={toggleTheme} 
+          style={{ background: "none", border: "none", fontSize: "16px", padding: "6px", cursor: "pointer", color: "var(--text)" }}
+          title="Toggle White/Dark Theme"
+        >
+          {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+        </button>
+
         <button className="avatar-btn" onClick={() => setOpen((o) => !o)}>
           <span className="avatar-circle">{user ? user.name.charAt(0).toUpperCase() : "👤"}</span>
           <span>▾</span>

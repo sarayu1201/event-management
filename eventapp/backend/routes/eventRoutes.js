@@ -9,6 +9,10 @@ const {
   getMyEvents,
   assignPromoter,
   getFilters,
+  duplicateEvent,
+  togglePauseEvent,
+  cancelEvent,
+  checkInAttendee,
 } = require("../controllers/eventController");
 const { protect, authorize } = require("../middleware/auth");
 
@@ -23,5 +27,9 @@ router.post("/", protect, authorize("organiser"), createEvent);
 router.put("/:id", protect, authorize("organiser"), updateEvent);
 router.delete("/:id", protect, authorize("organiser"), deleteEvent);
 router.post("/:id/assign-promoter", protect, authorize("organiser"), assignPromoter);
+router.post("/:id/duplicate", protect, authorize("organiser"), duplicateEvent);
+router.put("/:id/toggle-pause", protect, authorize("organiser"), togglePauseEvent);
+router.put("/:id/cancel", protect, authorize("organiser"), cancelEvent);
+router.post("/:id/check-in", protect, authorize("organiser"), checkInAttendee);
 
 module.exports = router;

@@ -7,6 +7,8 @@ const {
   getAllEvents,
   updateEventStatus,
   getAllBookings,
+  getAllWithdrawals,
+  processWithdrawalRequest,
 } = require("../controllers/adminController");
 const { protect, authorize } = require("../middleware/auth");
 
@@ -22,5 +24,8 @@ router.get("/events", getAllEvents);
 router.put("/events/:id/status", updateEventStatus);
 
 router.get("/bookings", getAllBookings);
+
+router.get("/withdrawals", getAllWithdrawals);
+router.put("/withdrawals/:id", processWithdrawalRequest);
 
 module.exports = router;
