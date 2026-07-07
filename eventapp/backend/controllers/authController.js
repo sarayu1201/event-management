@@ -124,6 +124,14 @@ const verifyOTP = async (req, res, next) => {
 
     let user = await User.findOne({ phone: finalPhone });
 
+    if (user) {
+      if (role && user.role !== role) {
+        return res.status(401).json({
+          message: `No ${role} account found with this phone number. Please check you're using the correct login page.`
+        });
+      }
+    }
+
     if (!user) {
       // Prompt user to register if they don't exist
       if (!name) {
