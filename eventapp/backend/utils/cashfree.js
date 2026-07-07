@@ -1,9 +1,12 @@
 const https = require("https");
 
 const getCashfreeHost = () => {
-  return process.env.CASHFREE_ENV === "production"
-    ? "api.cashfree.com"
-    : "sandbox.cashfree.com";
+  const appId = process.env.CASHFREE_APP_ID || "";
+  const env = process.env.CASHFREE_ENV || "";
+  if (appId.toUpperCase().startsWith("TEST") || env === "sandbox" || env === "test") {
+    return "sandbox.cashfree.com";
+  }
+  return "api.cashfree.com";
 };
 
 const makeRequest = (method, path, data = null) => {

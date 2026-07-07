@@ -93,10 +93,20 @@ const createPaymentSession = async (req, res, next) => {
       : (process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",")[0].trim() : "http://localhost:3001");
     const returnUrl = `${origin}/payment/status?order_id={order_id}`;
 
+    // Sanitize user's phone number to avoid Cashfree API rejection (must be valid format, fallback to default if invalid)
+    let cleanPhone = (booking.user.phone || "").replace(/[\s\-\(\)\+]/g, "");
+    if (cleanPhone.startsWith("91") && cleanPhone.length === 12) {
+      cleanPhone = cleanPhone.substring(2);
+    } else if (cleanPhone.startsWith("0") && cleanPhone.length === 11) {
+      cleanPhone = cleanPhone.substring(1);
+    }
+    const isValidPhone = /^[6-9]\d{9}$/.test(cleanPhone);
+    const finalPhone = isValidPhone ? cleanPhone : "9999999999";
+
     const customerDetails = {
       id: booking.user._id,
       email: booking.user.email,
-      phone: booking.user.phone || "9999999999",
+      phone: finalPhone,
       name: booking.user.name || "Customer",
     };
 
@@ -107,10 +117,12 @@ const createPaymentSession = async (req, res, next) => {
       returnUrl
     );
 
+    const isSandbox = (process.env.CASHFREE_APP_ID || "").toUpperCase().startsWith("TEST");
+
     res.json({
       paymentSessionId: cashfreeOrder.payment_session_id,
       orderId: cashfreeOrder.order_id,
-      cfEnv: process.env.CASHFREE_ENV || "sandbox",
+      cfEnv: isSandbox ? "sandbox" : (process.env.CASHFREE_ENV || "production"),
     });
   } catch (err) {
     console.error("Cashfree Session Creation Error:", err.error || err.message || err);
