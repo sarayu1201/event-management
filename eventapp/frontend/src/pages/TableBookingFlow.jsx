@@ -22,7 +22,7 @@ const TableBookingFlow = () => {
   useEffect(() => {
     Promise.all([
       api.get(`/events/${id}`),
-      api.get(`/api/events/${id}/tables`)
+      api.get(`/events/${id}/tables`)
     ]).then(([eventRes, tabRes]) => {
       setEvent(eventRes.data);
       setTables(tabRes.data || []);
@@ -61,7 +61,7 @@ const TableBookingFlow = () => {
     setError("");
 
     try {
-      const { data } = await api.post("/api/table-bookings", {
+      const { data } = await api.post("/table-bookings", {
         eventId: id,
         tableId: selectedTableId,
         numberOfGuests: guestsCount,

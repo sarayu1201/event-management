@@ -37,8 +37,8 @@ const Checkout = () => {
   const loadData = () => {
     Promise.all([
       api.get(`/events/${id}`),
-      api.get(`/api/ticketing/custom-forms/${id}`),
-      api.get(`/api/enterprise-ticketing/events/${id}/seat-locks`)
+      api.get(`/ticketing/custom-forms/${id}`),
+      api.get(`/enterprise-ticketing/events/${id}/seat-locks`)
     ]).then(([eventRes, formRes, locksRes]) => {
       const data = eventRes.data;
       setEvent(data);
@@ -154,7 +154,7 @@ const Checkout = () => {
 
     if (selectedSeats.includes(seatId)) {
       try {
-        await api.post("/api/enterprise-ticketing/seat-locks/release", { eventId: id, seatId });
+        await api.post("/enterprise-ticketing/seat-locks/release", { eventId: id, seatId });
         setSelectedSeats(selectedSeats.filter(s => s !== seatId));
       } catch (err) {
         alert("Failed to release seat lock");
@@ -164,7 +164,7 @@ const Checkout = () => {
         // Release oldest locked seat first
         const oldest = selectedSeats[0];
         try {
-          await api.post("/api/enterprise-ticketing/seat-locks/release", { eventId: id, seatId: oldest });
+          await api.post("/enterprise-ticketing/seat-locks/release", { eventId: id, seatId: oldest });
           setSelectedSeats(prev => prev.filter(s => s !== oldest));
         } catch (err) {
           console.error("Failed oldest release", err);
@@ -173,7 +173,7 @@ const Checkout = () => {
 
       // Lock seat in Database
       try {
-        await api.post("/api/enterprise-ticketing/seat-locks", { eventId: id, seatId });
+        await api.post("/enterprise-ticketing/seat-locks", { eventId: id, seatId });
         setSelectedSeats(prev => [...prev, seatId]);
         // Set lock timer to 10 minutes (600 seconds)
         if (timeLeft <= 0) setTimeLeft(600);
