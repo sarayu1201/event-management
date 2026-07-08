@@ -55,6 +55,11 @@ const Checkout = () => {
         setMaxSeats(Math.min(data.availableSeats, 10));
         setGstRate(data.price > 499 ? 18 : 0);
       }
+    }).catch(err => {
+      console.error(err);
+      setError("Failed to load checkout details. Make sure your backend server is deployed and online.");
+      // Set empty event to bypass loader screen and show the error message
+      setEvent({});
     });
   };
 
