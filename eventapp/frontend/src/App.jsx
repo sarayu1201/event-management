@@ -40,6 +40,7 @@ import Refunds from "./pages/Refunds";
 import Privacy from "./pages/Privacy";
 import Footer from "./components/Footer";
 import NotFound from "./pages/NotFound";
+import ListYourEvent from "./pages/ListYourEvent";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/events" element={<EventsList />} />
         <Route path="/events/:id" element={<EventDetail />} />
+        <Route path="/list-your-event" element={<ListYourEvent />} />
 
         {/* User auth */}
         <Route path="/login" element={<Login />} />

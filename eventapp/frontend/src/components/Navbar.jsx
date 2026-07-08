@@ -51,7 +51,7 @@ const Navbar = () => {
       <div className="nav-links">
         <Link to="/">Home</Link>
         <Link to="/events">Events</Link>
-        <Link to="/organiser/login">List Your Event</Link>
+        <Link to="/list-your-event">List Your Event</Link>
       </div>
 
       <div className="nav-right" ref={ref} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
