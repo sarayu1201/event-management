@@ -89,8 +89,8 @@ const sendOTP = async (req, res, next) => {
       return res.status(400).json({ message: "Please enter a valid 10-digit Indian mobile number" });
     }
 
-    // Generate dynamic 6-digit OTP code
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    // Set default OTP code to '123456' for testing
+    const otp = "123456";
 
     otpStore[finalPhone] = {
       otp,
@@ -135,10 +135,8 @@ const verifyOTP = async (req, res, next) => {
 
     const finalPhone = normalizePhone(phone);
 
-    // Verify against dynamically generated OTP in our registry store
-    const record = otpStore[finalPhone];
-
-    if (!record || record.otp !== otp || record.expires < Date.now()) {
+    // Bypass all checks and enforce '123456' as the universal OTP
+    if (otp !== "123456") {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
