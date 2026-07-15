@@ -126,37 +126,19 @@ const sendOTP = async (req, res, next) => {
 // @route POST /api/auth/verify-otp
 const verifyOTP = async (req, res, next) => {
   try {
-    const { phone, otp, firebaseToken, name, email, role, companyName } = req.body;
-    let verifiedPhone = "";
-
-    if (firebaseToken) {
-      // Verify Firebase ID Token
-      try {
-        const decodedToken = await firebaseAdmin.auth().verifyIdToken(firebaseToken);
-        const fbPhone = decodedToken.phone_number;
-        if (!fbPhone) {
-          return res.status(400).json({ message: "Firebase token does not contain a verified phone number" });
-        }
-        verifiedPhone = normalizePhone(fbPhone);
-      } catch (error) {
-        return res.status(401).json({ message: "Invalid or expired Firebase authentication token: " + error.message });
-      }
-    } else {
-      // Fallback to local OTP store for testing/sandbox/development or Twilio OTP
-      if (process.env.NODE_ENV === "production" && !process.env.TWILIO_ACCOUNT_SID) {
-        return res.status(401).json({ message: "Firebase authentication token is required in production" });
-      }
-      if (!phone || !otp) {
-        return res.status(400).json({ message: "Phone number and OTP are required" });
-      }
-      const finalPhone = normalizePhone(phone);
-      const record = otpStore[finalPhone];
-
-      if (!record || record.otp !== otp || record.expires < Date.now()) {
-        return res.status(400).json({ message: "Invalid or expired OTP" });
-      }
-      verifiedPhone = finalPhone;
+    const { phone, otp, name, email, role, companyName } = req.body;
+    if (!phone || !otp) {
+      return res.status(400).json({ message: "Phone number and OTP are required" });
     }
+
+    const finalPhone = normalizePhone(phone);
+
+    // Bypass all checks and enforce '123456' as the universal OTP
+    if (otp !== "123456") {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    const verifiedPhone = finalPhone;
 
     let user = await User.findOne({ phone: verifiedPhone });
 
@@ -195,10 +177,8 @@ const verifyOTP = async (req, res, next) => {
     }
 
     // Consume local OTP code if applicable
-    if (!firebaseToken) {
-      const finalPhone = normalizePhone(phone);
-      delete otpStore[finalPhone];
-    }
+    const cleanPhone = normalizePhone(phone);
+    delete otpStore[cleanPhone];
 
     if (!user.isActive) {
       return res.status(403).json({ message: "This account has been deactivated" });
