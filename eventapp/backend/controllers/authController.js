@@ -47,7 +47,7 @@ const register = async (req, res, next) => {
 
     // Matches the site's workflow: only Users and Event Organisers can self-signup.
     // Promoter accounts are created by an admin/organiser (see seed script / admin panel).
-    const allowedSelfSignupRoles = ["user", "organiser"];
+    const allowedSelfSignupRoles = ["user", "organiser", "promoter"];
     const finalRole = allowedSelfSignupRoles.includes(role) ? role : "user";
 
     const existing = await User.findOne({ email: email.toLowerCase() });
@@ -62,6 +62,8 @@ const register = async (req, res, next) => {
       phone: finalPhone,
       role: finalRole,
       companyName: finalRole === "organiser" ? companyName : undefined,
+      promoCode: finalRole === "promoter" ? (req.body.promoCode || `PROMO_${Math.floor(1000 + Math.random() * 9000)}`).toUpperCase() : undefined,
+      commissionRate: finalRole === "promoter" ? 10 : undefined,
     });
 
     const token = generateToken(user);
@@ -166,7 +168,7 @@ const verifyOTP = async (req, res, next) => {
         }
       }
 
-      const allowedSelfSignupRoles = ["user", "organiser"];
+      const allowedSelfSignupRoles = ["user", "organiser", "promoter"];
       const finalRole = allowedSelfSignupRoles.includes(role) ? role : "user";
 
       user = await User.create({

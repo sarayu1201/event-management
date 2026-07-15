@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const PromoterLogin = () => {
@@ -30,11 +30,6 @@ const PromoterLogin = () => {
       <div className="auth-card">
         <h2>Promoter Login</h2>
         <p className="sub">Track your referral bookings and commission earnings</p>
-
-        <div className="alert alert-success">
-          Promoter accounts are created by event organisers/admins — there's no public signup, matching the
-          original workflow.
-        </div>
 
         {error && <div className="alert alert-error">{error}</div>}
 
@@ -79,7 +74,9 @@ const PromoterLogin = () => {
           </button>
         </form>
 
-
+        <div className="auth-switch">
+          Don't have an account? <Link to="/promoter/signup">Signup</Link>
+        </div>
       </div>
     </div>
   );

@@ -12,6 +12,7 @@ import Signup from "./pages/Signup";
 import OrganiserLogin from "./pages/OrganiserLogin";
 import OrganiserSignup from "./pages/OrganiserSignup";
 import PromoterLogin from "./pages/PromoterLogin";
+import PromoterSignup from "./pages/PromoterSignup";
 import Checkout from "./pages/Checkout";
 import FakePaymentGateway from "./pages/FakePaymentGateway";
 import MockCheckout from "./pages/MockCheckout";
@@ -60,8 +61,9 @@ function App() {
         <Route path="/organiser/login" element={<OrganiserLogin />} />
         <Route path="/organiser/signup" element={<OrganiserSignup />} />
 
-        {/* Promoter auth (login only — no public signup) */}
+        {/* Promoter auth */}
         <Route path="/promoter/login" element={<PromoterLogin />} />
+        <Route path="/promoter/signup" element={<PromoterSignup />} />
 
         {/* Admin auth */}
         <Route path="/admin/login" element={<AdminLogin />} />
