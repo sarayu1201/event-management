@@ -607,8 +607,12 @@ const getOrganiserAnalytics = async (req, res, next) => {
       monthlyRevenue[monthYear] = (monthlyRevenue[monthYear] || 0) + b.totalAmount;
     });
 
-    // Top selling events
+    // Top selling events (initialize all organiser events to 0 so they appear in analytics immediately)
     const topEvents = {};
+    events.forEach(e => {
+      topEvents[e.title] = 0;
+    });
+    
     bookings.forEach(b => {
       const title = b.event?.title || "Unknown";
       topEvents[title] = (topEvents[title] || 0) + b.seats;
