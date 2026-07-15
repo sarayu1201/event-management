@@ -385,17 +385,27 @@ const MyBookings = () => {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               {attendeeTickets.map((t, idx) => (
                 <div key={t._id} className="card-panel" style={{ background: "var(--surface-2)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", border: "1px solid var(--border)" }}>
-                  <div>
-                    <h4 style={{ margin: 0, fontSize: "14px" }}>Pass #{idx + 1}: {t.attendeeName}</h4>
-                    <code style={{ fontSize: "11px", color: "var(--text-dim)" }}>Ticket ID: {t.ticketId}</code>
-                    
-                    {/* Rotating QR display status */}
-                    <div style={{ color: "var(--purple)", fontSize: "12px", fontWeight: "bold", marginTop: "4px" }}>
-                      🛡️ Secure Token: {rotatingTokens[t.ticketId] || "Loading Rotating Key..."}
+                  <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
+                    {/* Real-time QR Code Display */}
+                    <div style={{ background: "#ffffff", padding: "6px", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #cbd5e1" }}>
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${rotatingTokens[t.ticketId] || t.qrCodeToken || t.ticketId}`} 
+                        alt="Scannable QR" 
+                        style={{ width: "110px", height: "110px" }} 
+                      />
                     </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: "14px" }}>Pass #{idx + 1}: {t.attendeeName}</h4>
+                      <code style={{ fontSize: "11px", color: "var(--text-dim)" }}>Ticket ID: {t.ticketId}</code>
+                      
+                      {/* Rotating QR display status */}
+                      <div style={{ color: "var(--purple)", fontSize: "12px", fontWeight: "bold", marginTop: "4px" }}>
+                        🛡️ Secure Token: {rotatingTokens[t.ticketId] || "Loading Rotating Key..."}
+                      </div>
 
-                    {t.assignedSeat && <div style={{ fontSize: "12px", marginTop: "4px" }}>Seat: <strong>{t.assignedSeat}</strong></div>}
-                    <div style={{ fontSize: "11px", background: "var(--border)", display: "inline-block", padding: "2px 6px", borderRadius: "4px", marginTop: "6px", textTransform: "uppercase" }}>{t.status}</div>
+                      {t.assignedSeat && <div style={{ fontSize: "12px", marginTop: "4px" }}>Seat: <strong>{t.assignedSeat}</strong></div>}
+                      <div style={{ fontSize: "11px", background: "var(--border)", display: "inline-block", padding: "2px 6px", borderRadius: "4px", marginTop: "6px", textTransform: "uppercase" }}>{t.status}</div>
+                    </div>
                   </div>
 
                   <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
