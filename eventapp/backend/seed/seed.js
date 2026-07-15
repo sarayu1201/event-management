@@ -206,6 +206,36 @@ const run = async () => {
     },
   ]);
 
+  console.log("Creating sample bookings...");
+  await Booking.create([
+    {
+      ticketId: `TKT-${Math.floor(100000 + Math.random() * 900000)}`,
+      user: demoUser._id,
+      event: events[0]._id,
+      seats: 2,
+      unitPrice: events[0].price,
+      totalAmount: events[0].price * 2,
+      paymentStatus: "success",
+      paymentMethod: "card",
+      transactionId: `TXN_${Date.now()}_1`,
+      bookingStatus: "confirmed",
+      ticketTypeName: "Regular",
+    },
+    {
+      ticketId: `TKT-${Math.floor(100000 + Math.random() * 900000)}`,
+      user: demoUser._id,
+      event: events[1]._id,
+      seats: 1,
+      unitPrice: events[1].price,
+      totalAmount: events[1].price,
+      paymentStatus: "success",
+      paymentMethod: "upi",
+      transactionId: `TXN_${Date.now()}_2`,
+      bookingStatus: "confirmed",
+      ticketTypeName: "Regular",
+    }
+  ]);
+
   console.log(`\nSeed complete: ${events.length} events created.\n`);
   console.log("========== DEMO LOGIN CREDENTIALS ==========");
   console.log("USER        -> email: user@demo.com        | password: password123");
