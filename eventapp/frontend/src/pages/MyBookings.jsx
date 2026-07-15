@@ -443,7 +443,11 @@ const MyBookings = () => {
 
             <div style={{ background: "#fff", padding: "12px", display: "inline-block", borderRadius: "6px", marginTop: "24px" }}>
               {/* Render Rotating Secure Token in Badge QR Code */}
-              <div style={{ width: "100px", height: "100px", background: "#000" }}></div>
+              <img 
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${rotatingTokens[showBadge.ticketId] || showBadge.qrCodeToken || showBadge.ticketId}`} 
+                alt="Badge QR" 
+                style={{ width: "100px", height: "100px", display: "block" }} 
+              />
             </div>
 
             <div style={{ fontSize: "10px", color: "var(--text-dim)", marginTop: "16px" }}>Secure QR: {rotatingTokens[showBadge.ticketId] || "Loading..."}</div>
@@ -481,7 +485,11 @@ const MyBookings = () => {
             </div>
 
             <div style={{ textAlign: "center", marginTop: "24px", background: "#fff", padding: "16px", borderRadius: "10px" }}>
-              <div style={{ height: "40px", background: "#000", marginBottom: "8px" }}></div>
+              <img 
+                src={`https://barcode.tec-it.com/barcode.ashx?data=${rotatingTokens[showWallet.ticketId] || showWallet.qrCodeToken || showWallet.ticketId}&code=Code128`} 
+                alt="Barcode" 
+                style={{ height: "60px", maxWidth: "100%", objectFit: "contain", display: "block", margin: "0 auto 8px" }} 
+              />
               <div style={{ fontSize: "11px", color: "#000", fontFamily: "monospace" }}>{rotatingTokens[showWallet.ticketId] || "Loading..."}</div>
             </div>
           </div>
