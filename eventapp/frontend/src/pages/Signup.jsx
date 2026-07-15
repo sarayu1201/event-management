@@ -162,13 +162,7 @@ const Signup = () => {
                 placeholder="######"
                 style={{ letterSpacing: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold" }}
               />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "10px", fontSize: "13px" }}>
-                <span 
-                  onClick={() => setForm({ ...form, otp: "123456" })} 
-                  style={{ color: "var(--pink)", cursor: "pointer", fontWeight: "500" }}
-                >
-                  ⚡ Auto-fill OTP (123456)
-                </span>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px", fontSize: "13px" }}>
                 {timer > 0 ? (
                   <span style={{ color: "var(--text-dim)" }}>Resend in {timer}s</span>
                 ) : (

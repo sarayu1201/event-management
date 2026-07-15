@@ -87,8 +87,8 @@ const sendOTP = async (req, res, next) => {
       return res.status(400).json({ message: "Please enter a valid 10-digit Indian mobile number" });
     }
 
-    // Generate dynamic 6-digit OTP code
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    // Set default OTP code to '123456' for testing
+    const otp = "123456";
 
     otpStore[finalPhone] = {
       otp,
