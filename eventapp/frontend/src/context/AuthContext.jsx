@@ -32,52 +32,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const sendOtp = async (phone) => {
-    // Format phone number for Firebase (+91 + 10-digit number)
-    let cleanPhone = phone.replace(/[\s\-\(\)\+]/g, "");
-    if (cleanPhone.length === 10) {
-      cleanPhone = "+91" + cleanPhone;
-    } else if (cleanPhone.startsWith("91") && cleanPhone.length === 12) {
-      cleanPhone = "+" + cleanPhone;
-    } else if (!cleanPhone.startsWith("+")) {
-      cleanPhone = "+91" + cleanPhone;
-    }
-
-    // Prepare dynamic Recaptcha container
-    let container = document.getElementById("recaptcha-container");
-    if (!container) {
-      container = document.createElement("div");
-      container.id = "recaptcha-container";
-      document.body.appendChild(container);
-    }
-
-    const verifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-      size: "invisible",
-      callback: () => {
-        // reCAPTCHA solved
-      }
-    });
-
-    const result = await signInWithPhoneNumber(auth, cleanPhone, verifier);
-    setConfirmationResult(result);
-    return { message: "OTP sent successfully via Firebase", phone: cleanPhone };
+    const { data } = await api.post("/auth/send-otp", { phone });
+    return data;
   };
 
   const verifyOtp = async (payload) => {
-    if (!confirmationResult) {
-      throw new Error("No active OTP request found. Please request OTP again.");
-    }
-
-    // Confirm the OTP code with Firebase
-    const userCredential = await confirmationResult.confirm(payload.otp);
-    
-    // Retrieve the verified user ID token
-    const firebaseToken = await userCredential.user.getIdToken();
-
-    // Call backend verify-otp endpoint to sync with application DB and generate app JWT session token
-    const { data } = await api.post("/auth/verify-otp", {
-      ...payload,
-      firebaseToken,
-    });
+    // Call backend verify-otp endpoint directly
+    const { data } = await api.post("/auth/verify-otp", payload);
 
     if (data.exists && data.token) {
       localStorage.setItem("eventhub_token", data.token);

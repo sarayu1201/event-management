@@ -71,6 +71,8 @@ const register = async (req, res, next) => {
   }
 };
 
+const twilio = require("twilio");
+
 // @desc  Send SMS OTP to phone number
 // @route POST /api/auth/send-otp
 const sendOTP = async (req, res, next) => {
@@ -85,10 +87,8 @@ const sendOTP = async (req, res, next) => {
       return res.status(400).json({ message: "Please enter a valid 10-digit Indian mobile number" });
     }
 
-    // Default to '123456' for sandbox/testing, or dynamic in production
-    const otp = process.env.NODE_ENV === "production" && process.env.TWILIO_AUTH_TOKEN
-      ? String(Math.floor(100000 + Math.random() * 900000))
-      : "123456";
+    // Generate dynamic 6-digit OTP code
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
 
     otpStore[finalPhone] = {
       otp,
@@ -100,6 +100,21 @@ const sendOTP = async (req, res, next) => {
     console.log(`To: +91${finalPhone}`);
     console.log(`OTP Code: ${otp}`);
     console.log("------------------------------------------------");
+
+    // Send SMS via Twilio if keys are present
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
+      try {
+        const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        await client.messages.create({
+          body: `Your EventHub OTP verification code is: ${otp}`,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: `+91${finalPhone}`
+        });
+        console.log(`[Twilio SMS] Sent OTP to +91${finalPhone}`);
+      } catch (err) {
+        console.error("Twilio SMS dispatch failed:", err.message);
+      }
+    }
 
     res.json({ message: "OTP sent successfully", phone: finalPhone });
   } catch (err) {
@@ -127,8 +142,8 @@ const verifyOTP = async (req, res, next) => {
         return res.status(401).json({ message: "Invalid or expired Firebase authentication token: " + error.message });
       }
     } else {
-      // Fallback to local OTP store for testing/sandbox/development
-      if (process.env.NODE_ENV === "production") {
+      // Fallback to local OTP store for testing/sandbox/development or Twilio OTP
+      if (process.env.NODE_ENV === "production" && !process.env.TWILIO_ACCOUNT_SID) {
         return res.status(401).json({ message: "Firebase authentication token is required in production" });
       }
       if (!phone || !otp) {
