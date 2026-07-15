@@ -145,7 +145,7 @@ const verifyOTP = async (req, res, next) => {
     if (user) {
       if (role && user.role !== role) {
         return res.status(401).json({
-          message: `No ${role} account found with this phone number. Please check you're using the correct login page.`
+          message: "No account found with this phone number. Please register."
         });
       }
     }

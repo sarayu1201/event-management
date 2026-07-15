@@ -8,6 +8,11 @@ const api = axios.create({
 
 // Attach token to every request if present
 api.interceptors.request.use((config) => {
+  // Normalize double /api/ prefixing if the route starts with "/api/"
+  if (config.url && config.url.startsWith("/api/")) {
+    config.url = config.url.substring(4); // Remove "/api" prefix (e.g. "/api/business" becomes "/business")
+  }
+
   const token = localStorage.getItem("eventhub_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
