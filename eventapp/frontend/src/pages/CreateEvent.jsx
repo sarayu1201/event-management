@@ -162,10 +162,32 @@ const CreateEvent = () => {
                 ))}
               </select>
             </div>
-            <div className="form-group">
-              <label>Banner Image URL</label>
-              <input name="bannerImage" value={form.bannerImage} onChange={onChange} placeholder="https://..." />
-            </div>
+             <div className="form-group">
+               <label>Upload Banner Image</label>
+               <input 
+                 type="file" 
+                 accept="image/*" 
+                 onChange={(e) => {
+                   const file = e.target.files[0];
+                   if (file) {
+                     const reader = new FileReader();
+                     reader.onloadend = () => {
+                       setForm(f => ({ ...f, bannerImage: reader.result }));
+                     };
+                     reader.readAsDataURL(file);
+                   }
+                 }} 
+               />
+               {form.bannerImage && (
+                 <div style={{ marginTop: "10px" }}>
+                   <img 
+                     src={form.bannerImage} 
+                     alt="Banner Preview" 
+                     style={{ maxHeight: "80px", borderRadius: "6px", border: "1px solid var(--border)" }} 
+                   />
+                 </div>
+               )}
+             </div>
           </div>
 
           <h3 style={{ marginTop: 24, fontSize: "16px", color: "var(--pink)" }}>Date, Time & Geolocation</h3>
@@ -359,10 +381,40 @@ const CreateEvent = () => {
                 <span style={{ fontSize: "13px", color: "var(--text-dim)" }}>{form.ticketThemeColor}</span>
               </div>
             </div>
-            <div className="form-group">
-              <label>Ticket Header Image URL (optional)</label>
-              <input name="ticketHeaderImage" value={form.ticketHeaderImage} onChange={onChange} placeholder="https://..." />
-            </div>
+             <div className="form-group">
+               <label>Upload Ticket Header Image (optional)</label>
+               <input 
+                 type="file" 
+                 accept="image/*" 
+                 onChange={(e) => {
+                   const file = e.target.files[0];
+                   if (file) {
+                     const reader = new FileReader();
+                     reader.onloadend = () => {
+                       setForm(f => ({ ...f, ticketHeaderImage: reader.result }));
+                     };
+                     reader.readAsDataURL(file);
+                   }
+                 }} 
+               />
+               {form.ticketHeaderImage && (
+                 <div style={{ marginTop: "10px" }}>
+                   <img 
+                     src={form.ticketHeaderImage} 
+                     alt="Ticket Header Preview" 
+                     style={{ maxHeight: "80px", borderRadius: "6px", border: "1px solid var(--border)" }} 
+                   />
+                   <button 
+                     type="button" 
+                     onClick={() => setForm(f => ({ ...f, ticketHeaderImage: "" }))}
+                     className="btn btn-sm btn-outline" 
+                     style={{ display: "block", marginTop: "5px" }}
+                   >
+                     Remove Image
+                   </button>
+                 </div>
+               )}
+             </div>
           </div>
 
           <div className="form-group">
