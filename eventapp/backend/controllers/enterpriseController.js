@@ -226,7 +226,7 @@ const getRecommendations = async (req, res, next) => {
       category: { $in: favCategories },
       status: "approved",
       eventStatus: "upcoming",
-      _id: { $nil: user.favorites.map(f => f._id) }
+      _id: { $nin: user.favorites ? user.favorites.map(f => f._id) : [] }
     })
       .limit(6)
       .populate("organiser", "name companyName");
