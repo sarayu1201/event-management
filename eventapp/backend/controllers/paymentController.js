@@ -8,7 +8,6 @@ const {
   getCashfreeOrderPayments,
 } = require("../utils/cashfree");
 const { sendTicketEmail } = require("../utils/email");
-const { sendTicketWhatsApp } = require("../utils/whatsapp");
 
 const generateTransactionId = () => {
   return "TXN" + Date.now().toString() + Math.floor(Math.random() * 9000 + 1000);
@@ -107,7 +106,6 @@ const processPayment = async (req, res, next) => {
 
     // Delivery
     await sendTicketEmail(booking);
-    await sendTicketWhatsApp(booking);
 
     res.json({ message: "Payment successful", booking });
   } catch (err) {
@@ -229,7 +227,6 @@ const verifyPayment = async (req, res, next) => {
 
       await creditOrganiserBalance(booking);
       await sendTicketEmail(booking);
-      await sendTicketWhatsApp(booking);
 
       return res.json({ message: "Payment verified and booking completed", booking });
     } else {
@@ -295,7 +292,6 @@ const handleCashfreeWebhook = async (req, res, next) => {
 
             await creditOrganiserBalance(booking);
             await sendTicketEmail(booking);
-            await sendTicketWhatsApp(booking);
 
             console.log(`Webhook successfully processed booking: ${bookingId}`);
           } else {
@@ -447,7 +443,6 @@ const verifyGatewayPayment = async (req, res, next) => {
 
       // Deliver ticket
       await sendTicketEmail(booking);
-      await sendTicketWhatsApp(booking);
 
       return res.json({ message: "Payment verified and booking completed", booking });
     } else {

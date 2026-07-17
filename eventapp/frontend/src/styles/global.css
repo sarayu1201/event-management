@@ -1442,5 +1442,176 @@ tr:last-child td {
   background: rgba(236, 30, 121, 0.08) !important;
 }
 
+/* ==========================================================================
+   MOBILE & RESPONSIVE LAYOUT STYLES
+   ========================================================================== */
+
+/* Universal table responsiveness */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Scrollable containers for seat and layout designs */
+.table-layout-container, 
+.designer-canvas, 
+.seating-chart-container, 
+.designer-workspace {
+  overflow-x: auto;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tablet & Smaller Screens (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 20px;
+  }
+  
+  .dash-body {
+    padding: 20px;
+  }
+  
+  .event-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+  }
+}
+
+/* Mobile & iPhone Screens (max-width: 768px) */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+  
+  .navbar {
+    padding: 12px 16px;
+  }
+  
+  .hero {
+    padding: 40px 16px 20px;
+    gap: 24px;
+  }
+  
+  .hero h1 {
+    font-size: 32px;
+  }
+  
+  .hero-visual {
+    width: 180px;
+    height: 180px;
+  }
+  
+  .carousel-section {
+    height: 280px;
+  }
+  
+  .carousel-content h1 {
+    font-size: 24px;
+  }
+  
+  .carousel-content p {
+    font-size: 14px;
+  }
+  
+  /* Stack the dashboard subheader links or let them scroll */
+  .dash-nav {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  
+  .dash-nav .links {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    gap: 16px;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Stats Grid scaling */
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  /* Ticket details structure scaling */
+  .ticket-card {
+    padding: 16px;
+  }
+  
+  .card-panel {
+    padding: 16px;
+  }
+}
+
+/* Small Phones & Samsung Fold (max-width: 600px) */
+@media (max-width: 600px) {
+  /* Stack input grid fields in forms */
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  /* Reduce auth card padding */
+  .auth-card {
+    padding: 24px 16px;
+  }
+  
+  .role-pills {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* General button alignment */
+  .btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+  
+  .filters-bar {
+    flex-direction: column;
+  }
+  
+  .filters-bar input {
+    width: 100%;
+  }
+  
+  .countdown-widget {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+  
+  .timer-blocks {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* Extreme narrow devices / Samsung Z Flip fold (max-width: 360px) */
+@media (max-width: 360px) {
+  .container {
+    padding: 0 10px;
+  }
+  
+  .hero-visual {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .carousel-section {
+    height: 220px;
+  }
+}
+
+
 
 

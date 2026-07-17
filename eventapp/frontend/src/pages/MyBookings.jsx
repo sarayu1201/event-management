@@ -426,10 +426,20 @@ const MyBookings = () => {
       {/* CONFERENCE BADGE GENERATOR MODAL */}
       {showBadge && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101, padding: 16 }}>
-          <div className="card-panel" style={{ width: "100%", maxWidth: 380, position: "relative", textAlign: "center", padding: "32px 24px", border: "4px solid #1e3c72" }}>
+          <div className="card-panel" style={{ width: "100%", maxWidth: 380, position: "relative", textAlign: "center", padding: "32px 24px", border: `4px solid ${selectedBooking?.event?.ticketThemeColor || "#1e3c72"}` }}>
             <button onClick={() => setShowBadge(null)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--text-dim)", fontSize: 20, cursor: "pointer" }}>×</button>
             
-            <div style={{ background: "#1e3c72", color: "#fff", padding: "10px", fontWeight: "bold", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px", borderRadius: "4px", marginBottom: "20px" }}>
+            {selectedBooking?.event?.ticketHeaderImage && (
+              <div style={{ marginBottom: "16px" }}>
+                <img 
+                  src={selectedBooking.event.ticketHeaderImage} 
+                  alt="Ticket Header" 
+                  style={{ maxWidth: "100%", borderRadius: "6px", maxHeight: "100px", objectFit: "cover" }} 
+                />
+              </div>
+            )}
+
+            <div style={{ background: selectedBooking?.event?.ticketThemeColor || "#1e3c72", color: "#fff", padding: "10px", fontWeight: "bold", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px", borderRadius: "4px", marginBottom: "20px" }}>
               CONFERENCE SPEAKER PASS
             </div>
 
@@ -439,7 +449,7 @@ const MyBookings = () => {
 
             <h3 style={{ margin: "0 0 6px 0", fontSize: "20px" }}>{showBadge.attendeeName}</h3>
             <div style={{ fontSize: "13px", color: "var(--text-dim)" }}>Lead Presenter</div>
-            <div style={{ fontSize: "13px", fontWeight: "bold", color: "var(--pink)", marginTop: "2px" }}>Aashvee Tech Solutions</div>
+            <div style={{ fontSize: "13px", fontWeight: "bold", color: selectedBooking?.event?.ticketThemeColor || "var(--pink)", marginTop: "2px" }}>Aashvee Tech Solutions</div>
 
             <div style={{ background: "#fff", padding: "12px", display: "inline-block", borderRadius: "6px", marginTop: "24px" }}>
               {/* Render Rotating Secure Token in Badge QR Code */}
@@ -452,7 +462,7 @@ const MyBookings = () => {
 
             <div style={{ fontSize: "10px", color: "var(--text-dim)", marginTop: "16px" }}>Secure QR: {rotatingTokens[showBadge.ticketId] || "Loading..."}</div>
             
-            <button onClick={() => window.print()} className="btn btn-sm btn-primary" style={{ marginTop: "20px" }}>Print Badge</button>
+            <button onClick={() => window.print()} className="btn btn-sm btn-primary" style={{ marginTop: "20px", background: selectedBooking?.event?.ticketThemeColor || "var(--pink)", borderColor: selectedBooking?.event?.ticketThemeColor || "var(--pink)" }}>Print Badge</button>
           </div>
         </div>
       )}
@@ -460,11 +470,21 @@ const MyBookings = () => {
       {/* APPLE / GOOGLE WALLET PASS SIMULATOR */}
       {showWallet && (
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 101, padding: 16 }}>
-          <div className="card-panel" style={{ width: "100%", maxWidth: 350, position: "relative", background: "#000", color: "#fff", borderRadius: "16px", padding: "20px", border: "1px solid var(--border)" }}>
+          <div className="card-panel" style={{ width: "100%", maxWidth: 350, position: "relative", background: "#000", color: "#fff", borderRadius: "16px", padding: "20px", border: `1px solid ${selectedBooking?.event?.ticketThemeColor || "var(--border)"}` }}>
             <button onClick={() => setShowWallet(null)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "#fff", fontSize: 20, cursor: "pointer" }}>×</button>
             
+            {selectedBooking?.event?.ticketHeaderImage && (
+              <div style={{ marginBottom: "16px", textAlign: "center" }}>
+                <img 
+                  src={selectedBooking.event.ticketHeaderImage} 
+                  alt="Ticket Header" 
+                  style={{ maxWidth: "100%", borderRadius: "6px", maxHeight: "100px", objectFit: "cover" }} 
+                />
+              </div>
+            )}
+
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "14px", fontWeight: "bold", color: "var(--pink)" }}>EventHub Pass</span>
+              <span style={{ fontSize: "14px", fontWeight: "bold", color: selectedBooking?.event?.ticketThemeColor || "var(--pink)" }}>EventHub Pass</span>
               <span style={{ fontSize: "11px", color: "var(--text-dim)" }}>Google Wallet</span>
             </div>
 

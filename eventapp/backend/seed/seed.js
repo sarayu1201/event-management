@@ -71,6 +71,8 @@ const run = async () => {
       availableSeats: 500,
       organiser: demoOrganiser._id,
       promoters: [demoPromoter._id],
+      latitude: 19.0330,
+      longitude: 73.0297,
     },
     {
       title: "Standup Comedy Night — Laugh Riot",
@@ -88,6 +90,8 @@ const run = async () => {
       availableSeats: 120,
       organiser: demoOrganiser._id,
       promoters: [demoPromoter._id],
+      latitude: 12.9719,
+      longitude: 77.5937,
     },
     {
       title: "Rooftop Jazz & Wine Evening",
@@ -105,6 +109,8 @@ const run = async () => {
       availableSeats: 80,
       organiser: demoOrganiser._id,
       promoters: [],
+      latitude: 17.3850,
+      longitude: 78.4867,
     },
     {
       title: "Startup Founders Meetup 2026",
@@ -122,6 +128,8 @@ const run = async () => {
       availableSeats: 200,
       organiser: demoOrganiser._id,
       promoters: [],
+      latitude: 12.9724,
+      longitude: 77.6083,
     },
     {
       title: "The Great Indian Theatre Fest — 'Aakhri Khat'",
@@ -139,6 +147,8 @@ const run = async () => {
       availableSeats: 150,
       organiser: demoOrganiser._id,
       promoters: [demoPromoter._id],
+      latitude: 19.1030,
+      longitude: 72.8267,
     },
     {
       title: "City Marathon & Run Rave 2026",
@@ -155,6 +165,8 @@ const run = async () => {
       availableSeats: 300,
       organiser: demoOrganiser._id,
       promoters: [],
+      latitude: 18.9220,
+      longitude: 72.8090,
     },
     {
       title: "Vintage Cinema Screening: Citizen Kane",
@@ -171,6 +183,8 @@ const run = async () => {
       availableSeats: 100,
       organiser: demoOrganiser._id,
       promoters: [],
+      latitude: 12.9784,
+      longitude: 77.6408,
     },
     {
       title: "Holi Color & Beats Festival 2026",
@@ -187,6 +201,8 @@ const run = async () => {
       availableSeats: 400,
       organiser: demoOrganiser._id,
       promoters: [],
+      latitude: 17.4483,
+      longitude: 78.3741,
     },
     {
       title: "Silent Reading & Coffee Meet",
@@ -203,6 +219,8 @@ const run = async () => {
       availableSeats: 40,
       organiser: demoOrganiser._id,
       promoters: [],
+      latitude: 17.4265,
+      longitude: 78.4116,
     },
   ]);
 

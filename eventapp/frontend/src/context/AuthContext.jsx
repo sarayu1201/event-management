@@ -1,7 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import api from "../api/axios";
-import { auth } from "../api/firebase";
-import { signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
 
 const AuthContext = createContext(null);
 

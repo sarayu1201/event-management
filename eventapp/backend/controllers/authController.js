@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
-const firebaseAdmin = require("../config/firebaseAdmin");
+
 
 const otpStore = {}; // Memory store for simple OTP registry
 
@@ -73,7 +73,7 @@ const register = async (req, res, next) => {
   }
 };
 
-const twilio = require("twilio");
+
 
 // @desc  Send SMS OTP to phone number
 // @route POST /api/auth/send-otp
@@ -103,20 +103,7 @@ const sendOTP = async (req, res, next) => {
     console.log(`OTP Code: ${otp}`);
     console.log("------------------------------------------------");
 
-    // Send SMS via Twilio if keys are present
-    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-      try {
-        const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-        await client.messages.create({
-          body: `Your EventHub OTP verification code is: ${otp}`,
-          from: process.env.TWILIO_PHONE_NUMBER,
-          to: `+91${finalPhone}`
-        });
-        console.log(`[Twilio SMS] Sent OTP to +91${finalPhone}`);
-      } catch (err) {
-        console.error("Twilio SMS dispatch failed:", err.message);
-      }
-    }
+
 
     res.json({ message: "OTP sent successfully", phone: finalPhone });
   } catch (err) {
